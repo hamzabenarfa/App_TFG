@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CONDUCTEUR
+  RESPONSABLE
+  CLIENT
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  email           String    @unique
+  password        String
+  role            Role      @default(CONDUCTEUR)
+  otp             String?
+  otpExpiry       DateTime?
+  otpForgetPass   String?
+  otpForgetExpiry DateTime?
+  active          Boolean   @default(false)
+  firstName       String?
+  lastName        String?
+  phoneNumber     String?
+  adress          String?
+  profileImage    String?
+  birthDate       DateTime?
+
+  Delivery   Delivery[]
+  deliveries Delivery[] @relation("ClientDeliveries") // Fixed relation name
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum DeliveryStatus {
+  sl3aflDepot
+  sl3a5arjt
+  sel3awoslotkodemclient
+  sl3awoslt
+}
+
+model Delivery {
+  id     Int            @id @default(autoincrement())
+  status DeliveryStatus @default(sl3aflDepot)
+
+  client   User @relation("ClientDeliveries", fields: [clientId], references: [id])
+  clientId Int
+
+  truck   Truck @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  truckId Int
+
+  user        User @relation(fields: [conductorId], references: [id])
+  conductorId Int
+
+  arrivalAtDepot DateTime?
+
+  dispatchedAt DateTime?
+  livredAtCond DateTime?
+  livredAtClient DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Truck {
+  id    Int    @id @default(autoincrement())
+  plate String @unique
+  model String
+
+  Delivery Delivery[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
